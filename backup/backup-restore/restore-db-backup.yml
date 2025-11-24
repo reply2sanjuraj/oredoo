@@ -1,0 +1,10 @@
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: db-backup
+  namespace: openshift-adp
+spec:
+  backupName: db-backup-20251120075807 
+  restorePVs: true
+  namespaceMapping:
+    database: database-backup

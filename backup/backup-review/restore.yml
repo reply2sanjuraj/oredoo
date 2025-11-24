@@ -1,0 +1,21 @@
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: wiki-staging
+  namespace: openshift-adp
+spec:
+  backupName: wiki-backup-20251121071531 
+  namespaceMapping:
+    wiki: wiki-staging
+  hooks:
+    resources:
+    - name: mediawiki-unlock
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: mediawiki
+      postHooks:
+      - exec:
+          container: mediawiki
+          command: 
+          - rm
+          - /data/images/lock_yBgMBwiR

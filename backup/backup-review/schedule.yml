@@ -1,0 +1,56 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: wiki-backup
+  namespace: openshift-adp
+spec:
+  schedule: "0 23 * * *"
+  paused: true
+  template:
+    includedNamespaces:
+    - wiki
+    orLabelSelectors:
+    - matchLabels:
+        app.kubernetes.io/part-of: mediawiki
+    - matchLabels:
+        kubernetes.io/metadata.name: wiki 
+    includedResources:
+    - deployments
+    - statefulsets
+    - secrets
+    - pvc
+    - pv
+    - services
+    - routes
+    - pods
+    - namespace
+    hooks:
+      resources:
+      - name: mediawiki-lock
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: mediawiki
+        pre:
+        - exec:
+            container: mediawiki
+            command: 
+            - /bin/bash
+            - -c
+            - echo "backup in progress" > /data/images/lock_yBgNBwiR;
+        post:
+        - exec:
+            container: mediawiki
+            command: 
+            - rm
+            - /data/images/lock_yBgNBwiR
+      - name: postgresql-checkpoint
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: postgresql
+        pre:
+        - exec:
+            container: postgresql
+            command: 
+            - psql
+            - -c
+            - "CHECKPOINT;"
